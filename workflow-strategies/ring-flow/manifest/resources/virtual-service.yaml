@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: $SERVICE_NAME-virtual-service
+  namespace: default
+spec:
+  http:
+  - match:
+    - headers:
+        Ring:
+          exact: $RING_NAME
+    route:
+    - destination:
+        port:
+          number: 80
+        host: $SERVICE_NAME.default.svc.cluster.local

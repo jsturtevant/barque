@@ -1,0 +1,18 @@
+trigger: none
+
+variables:
+  vmImageName: 'ubuntu-latest'    
+  manifest-repo: 'gitops/manifest-live'
+
+stages:
+  - stage: Placeholder
+    displayName: placeholder
+    jobs:
+    - job: placeholder
+      displayName: placeholder
+      pool:
+        vmImage: $(vmImageName)
+      steps:
+        - script: |-
+            echo "This pipeline doesn't do anything, it's just here so we don't have to drastically change functions.sh"
+          displayName: placeholder

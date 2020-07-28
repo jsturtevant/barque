@@ -1,0 +1,21 @@
+{
+  "isEnabled": true,
+  "isBlocking": true,
+  "type": {
+    "id": "0609b952-1397-4640-95ec-e00a01b2c241"
+  },
+  "settings": {
+    "buildDefinitionId": BUILD_DEFINITION_ID,
+    "queueOnSourceUpdateOnly": true,
+    "manualQueueOnly": false,
+    "displayName": "PR build policy",
+    "validDuration": 720,
+    "scope": [
+      {
+        "repositoryId": "REPO_ID",
+        "refName": "refs/heads/master",
+        "matchKind": "Exact"
+      }
+    ]
+  }
+}

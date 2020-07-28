@@ -1,0 +1,39 @@
+parameters:
+- name: manifestRepo
+  type: string
+  default: false
+- name: serviceName
+  type: string
+  default: false
+
+steps:
+  # https://docs.microsoft.com/en-us/azure/devops/pipelines/repos/multi-repo-checkout?view=azure-devops
+  # HARD CODED FOR NOW - cannot use ${{ parameters.manifestRepo }} as there is a bug "An error occurred while loading the YAML build pipeline. An item with the same key has already been added."
+  # the checkout: self is used to pull the .azuredevops/scripts directory so that we can run custom scripts - this also means that our current context is a root dir with ./azuredevops and manifest-live subdirectories
+  - checkout: self
+  - checkout: git://gitops/manifest-live
+    persistCredentials: true
+    displayName: Clone manifest repo
+  - task: Bash@3
+    inputs:
+      filePath: $(Build.Repository.Name)/.azuredevops/scripts/override_scripts.sh
+      workingDirectory: $(Build.Repository.Name)
+    displayName: Override default scripts
+  - task: Bash@3
+    inputs:
+      filePath: $(Build.Repository.Name)/.azuredevops/scripts/download_and_install.sh
+      workingDirectory: $(manifestRepo)
+    displayName: Installing kustomize
+  - task: Bash@3
+    inputs:
+      filePath: $(Build.Repository.Name)/.azuredevops/scripts/set_container_names.sh
+    displayName: Set image names
+  - task: Bash@3
+    inputs:
+      filePath: $(Build.Repository.Name)/.azuredevops/scripts/run_kustomize.sh
+    displayName: Run kustomize
+  - task: Bash@3
+    inputs:
+      filePath: $(Build.Repository.Name)/.azuredevops/scripts/push_changes.sh
+      workingDirectory: $(manifestRepo)
+    displayName: Automatically pushing changes to manifest live

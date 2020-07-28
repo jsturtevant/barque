@@ -1,0 +1,3 @@
+resources:
+- azure-vote.yaml
+- azure-vote-virtual-services.yaml

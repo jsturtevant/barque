@@ -1,0 +1,45 @@
+trigger: none
+
+variables:
+  vmImageName: 'ubuntu-latest'    
+  manifest-repo: 'gitops/manifest-live'
+
+stages:
+  - stage: Build
+    displayName: Build and push stage
+    jobs:
+    - job: run_build_push_acr
+      displayName: Build and Test
+      pool:
+        vmImage: $(vmImageName)
+      steps:
+        - template: ../templates/build-template.yaml
+          parameters: 
+            acrname: $(acrName)
+            serviceConnection: $(serviceConnection)
+  - stage: Promote
+    displayName: Promote to Dev
+    jobs:
+    - job: promote_dev
+      displayName: Promote to Dev
+      pool:
+        vmImage: $(vmImageName)
+      steps:
+        - template: ../templates/automatic-release-template.yaml
+          parameters: 
+            manifestRepo: $(manifest-repo)
+            overlayDir: overlays/dev
+            environment: dev
+            promotionType: automatic
+  - stage: IntegrationTests
+    displayName: Integration tests
+    jobs:
+    - job: integration_tests
+      displayName: Integration tests
+      pool:
+        vmImage: $(vmImageName)
+      steps:
+        - script: |-
+            echo "run integration tests... You have to poll for newest version or use something like https://github.com/justinbarrick/fluxcloud to trigger on flux sync completion)"
+            echo "see https://github.com/fluxcd/flux/issues/1071#issuecomment-617927384"
+          displayName: pr to dev

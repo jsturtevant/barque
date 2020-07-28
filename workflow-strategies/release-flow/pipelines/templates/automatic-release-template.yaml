@@ -1,0 +1,72 @@
+parameters:
+- name: manifestRepo
+  type: string
+  default: false
+- name: overlayDir
+  type: string
+  default: false
+- name: environment
+  type: string
+  default: false
+- name: promotionType
+  type: string
+  default: pr
+  values:
+    - pr
+    - automatic
+
+steps:
+  # https://docs.microsoft.com/en-us/azure/devops/pipelines/repos/multi-repo-checkout?view=azure-devops
+  # HARD CODED FOR NOW - cannot use ${{ parameters.manifestRepo }} as there is a bug "An error occurred while loading the YAML build pipeline. An item with the same key has already been added."
+  - checkout: git://gitops/manifest-live
+    persistCredentials: true
+    displayName: Clone manifest repo 
+  - script: |- 
+      curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+    displayName: Install kustomize
+  - script: |- 
+      set -e
+
+      # TODO this should be compiled once and shared across stages: https://github.com/microsoft/azure-pipelines-tasks/issues/4743
+      BUILD_REPO_NAME=$(echo $(Build.Repository.Name)-azure-vote-app | tr '[:upper:]' '[:lower:]')
+      IMAGE_NAME=$BUILD_REPO_NAME:$(Build.SourceBranchName)-$(Build.SourceVersion)
+
+      echo "##vso[task.setvariable variable=BUILD_REPO_NAME]$BUILD_REPO_NAME"
+      echo "##vso[task.setvariable variable=IMAGE_NAME]$IMAGE_NAME"
+    displayName: Set image names
+  - script: |-
+      set -e
+
+      git config user.email "dev@gitops-automation.com"
+      git config user.name "Gitops Account"
+     
+      echo "$IMAGE_NAME"
+      cd ${{ parameters.overlayDir }}
+      $(Build.Repository.LocalPath)/kustomize edit set image azure-vote-back=$IMAGE_NAME
+      git add kustomization.yaml
+      git status
+    displayName: Run kustomize   
+  - script: |-
+      set -e
+      git checkout master
+
+      # needs permissions on Project Collection Build Service Accounts https://developercommunity.visualstudio.com/content/problem/137489/0000000000aatf401027-genericcontribute-permissions.html
+      git commit -m "Update ${{ parameters.environment }} with $IMAGE_NAME" -m "from $(Build.SourceBranchName) commit from $(Build.DefinitionName) with buildId: $(Build.BuildId) and buildNumber: $(Build.BuildNumber)"
+      git status
+      git push origin master
+    condition: and(succeeded(), eq('${{ parameters.promotionType }}', 'automatic'))
+    displayName: Automatic promotion to ${{ parameters.environment }}
+  - script: |-
+      set -e
+      az extension add --name azure-devops
+
+      git checkout -b $(Build.SourceBranchName)-pr-$(Build.BuildNumber)
+      git commit -m "Update ${{ parameters.environment }} with $IMAGE_NAME" -m "from $(Build.SourceBranchName) commit from $(Build.DefinitionName) with buildId: $(Build.BuildId) and buildNumber: $(Build.BuildNumber)"
+      git push origin $(Build.SourceBranchName)-pr-$(Build.BuildNumber)
+
+      echo ${AZURE_DEVOPS_CLI_PAT} | az devops login
+      az repos pr create --description "Update ${{ parameters.environment }} with $IMAGE_NAME from $(Build.SourceBranchName) commit from $(Build.DefinitionName) with buildId: $(Build.BuildId) and buildNumber: $(Build.BuildNumber)" "PR created by: $(Build.DefinitionName) with buildId: $(Build.BuildId) and buildNumber: $(Build.BuildNumber)"
+    condition: and(succeeded(), eq('${{ parameters.promotionType }}', 'pr'))
+    displayName: PR to Promote to ${{ parameters.environment }}
+    env:
+      AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)

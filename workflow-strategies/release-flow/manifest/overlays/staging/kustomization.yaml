@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../../base
+images:
+- name: azure-vote-back
+  newName: app-azure-vote-app
+  newTag: v1.1-acc963f4aa3e51d3e26eca683edcde0059585838

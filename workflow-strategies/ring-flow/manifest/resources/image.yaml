@@ -1,0 +1,10 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $SERVICE_NAME
+spec:
+  template:
+    spec:
+      containers:
+      - name: $SERVICE_NAME
+        image: $ACRNAME.azurecr.io/$IMAGE_NAME

@@ -1,0 +1,23 @@
+parameters:
+- name: acrname
+  type: string
+  default: false
+- name: serviceConnection
+  type: string
+  default: false
+- name: serviceName
+  type: string
+  default: false
+
+steps:
+  - script: |-
+      echo "run lint, scan for creds, tests, etc"
+    displayName: Place holder for tests and other steps - replace with your custom steps
+  - task: AzureCLI@2
+    displayName: Build in ACR
+    inputs:
+      # we need to export pipeline vars to env here
+      azureSubscription: ${{ parameters.serviceConnection }}
+      acrName: ${{ parameters.acrname }}
+      scriptPath: .azuredevops/scripts/build_and_push.sh
+      scriptType: bash

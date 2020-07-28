@@ -1,0 +1,27 @@
+parameters:
+- name: acrname
+  type: string
+  default: false
+- name: serviceConnection
+  type: string
+  default: false
+  
+steps:
+  - script: |-
+      echo "run lint, scan for creds, tests, etc"
+    displayName: Place holder for tests and other steps - replace with your custom steps
+  - task: AzureCLI@2
+    displayName: Build in ACR
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnection }}
+      scriptLocation: inlineScript
+      scriptType: bash
+      inlineScript: |
+        set -e
+        
+        # TODO this should be compiled once and shared across stages: https://github.com/microsoft/azure-pipelines-tasks/issues/4743
+        BUILD_REPO_NAME=$(echo $(Build.Repository.Name)-azure-vote-app | tr '[:upper:]' '[:lower:]')
+        IMAGE_NAME=$BUILD_REPO_NAME:$(Build.SourceBranchName)-$(Build.SourceVersion)
+
+        echo "az acr build -r ${{ parameters.acrname }} --image $IMAGE_NAME ."
+        az acr build -r ${{ parameters.acrname }} --image $IMAGE_NAME ./azure-vote

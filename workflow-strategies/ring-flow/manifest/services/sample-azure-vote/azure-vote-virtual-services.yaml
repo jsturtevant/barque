@@ -1,0 +1,20 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: azure-vote-virtual-service
+  namespace: default
+spec:
+  hosts:
+  - "www.test.com"
+  gateways:
+  - istio-system/istio-ingressgateway
+  - mesh # applies to all the sidecars in the mesh
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        port:
+          number: 80 # can be omitted if it's the only port for reviews
+        host: azure-vote-front.default.svc.cluster.local

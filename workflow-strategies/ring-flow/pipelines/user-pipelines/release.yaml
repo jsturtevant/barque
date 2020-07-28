@@ -1,0 +1,35 @@
+trigger: 
+  branches: 
+    include:
+      - ring/*
+
+variables:
+  vmImageName: 'ubuntu-latest'    
+  manifest-repo: 'gitops/manifest-live'
+
+stages:
+  - stage: Build
+    displayName: Build and push stage
+    jobs:
+    - job: run_build_push_acr
+      displayName: Build and Test
+      pool:
+        vmImage: $(vmImageName)
+      steps:
+        - template: ../templates/build-template.yaml
+          parameters: 
+            acrname: $(acrName)
+            serviceConnection: $(serviceConnection)
+            serviceName: $(serviceName)
+  - stage: Update_manifest_live_with_ring
+    displayName: Release to manifest-live
+    jobs:
+    - job: ring_update
+      displayName: Release to manifest-live 
+      pool:
+        vmImage: $(vmImageName)
+      steps:
+        - template: ../templates/automatic-release-template.yaml
+          parameters: 
+            manifestRepo: $(manifest-repo)
+            serviceName: $(serviceName)

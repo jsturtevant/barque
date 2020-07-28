@@ -1,0 +1,30 @@
+{
+  "authorization": {
+    "parameters": {
+      "tenantid": "TENANT_ID",
+      "serviceprincipalid": "",
+      "serviceprincipalkey": "",
+      "authenticationType": "spnKey",
+      "scope": "ACR_ID"
+    },
+    "scheme": "ServicePrincipal"
+  },
+  "createdBy": {},
+  "data": {
+    "environment": "AzureCloud",
+    "scopeLevel": "Subscription",
+    "subscriptionId": "SUB_ID",
+    "subscriptionName": "SUB_NAME",
+    "creationMode": "Automatic"
+  },
+  "isShared": false,
+  "name": "SERVICE_CONNECTION_NAME",
+  "owner": "library",
+  "type": "azurerm",
+  "url": "https://management.azure.com/",
+  "administratorsGroup": null,
+  "description": "access to acr",
+  "groupScopeId": null,
+  "operationStatus": null,
+  "readersGroup": null
+}
